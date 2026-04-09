@@ -30,7 +30,7 @@ cfg_if::cfg_if! {
             Avx2,
             128..  => [batch  | Avx2InstructionSet],
             8..128 => [avx2   | Avx2InstructionSet],
-            4..8   => [sse    | Sse41InstructionSet],
+            4..8   => [sse41    | Sse41InstructionSet],
             1..4   => [scalar | ScalarInstructionSet]
         }
     } else if #[cfg(target_feature = "sse4.1")] {
@@ -43,7 +43,7 @@ cfg_if::cfg_if! {
         define_strategy! {
             Sse41,
             128..  => [batch  | Sse41InstructionSet],
-            4..128 => [sse    | Sse41InstructionSet],
+            4..128 => [sse41    | Sse41InstructionSet],
             1..4   => [scalar | ScalarInstructionSet],
         }
     } else {
