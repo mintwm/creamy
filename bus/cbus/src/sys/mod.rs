@@ -2,7 +2,7 @@ mod buffer_pool;
 mod layout;
 mod msg_pool;
 
-pub use buffer_pool::BufferPool;
+pub use buffer_pool::{BufferPool, Header};
 pub use msg_pool::MessagePool;
 
 #[macro_export]

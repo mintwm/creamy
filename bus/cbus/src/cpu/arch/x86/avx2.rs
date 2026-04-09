@@ -25,6 +25,7 @@ use crate::{
         set::InstructionSet,
     },
     lookup::LookupTable,
+    sys::Header,
 };
 
 pub const CHUNK_SIZE: usize = 8;
@@ -267,38 +268,23 @@ impl InstructionRunner<8> for Avx2InstructionSet {
             let dst_6 = msg6.cast::<u8>().add(1).read();
             let dst_7 = msg7.cast::<u8>().add(1).read();
 
-            let header_0 = data.memory.write.header_ptr_for(dst_0 as usize).as_mut();
-            let header_1 = data.memory.write.header_ptr_for(dst_1 as usize).as_mut();
-            let header_2 = data.memory.write.header_ptr_for(dst_2 as usize).as_mut();
-            let header_3 = data.memory.write.header_ptr_for(dst_3 as usize).as_mut();
-            let header_4 = data.memory.write.header_ptr_for(dst_4 as usize).as_mut();
-            let header_5 = data.memory.write.header_ptr_for(dst_5 as usize).as_mut();
-            let header_6 = data.memory.write.header_ptr_for(dst_6 as usize).as_mut();
-            let header_7 = data.memory.write.header_ptr_for(dst_7 as usize).as_mut();
+            let h0 = data.memory.write.header_mut_ptr_for(dst_0 as usize);
+            let h1 = data.memory.write.header_mut_ptr_for(dst_1 as usize);
+            let h2 = data.memory.write.header_mut_ptr_for(dst_2 as usize);
+            let h3 = data.memory.write.header_mut_ptr_for(dst_3 as usize);
+            let h4 = data.memory.write.header_mut_ptr_for(dst_4 as usize);
+            let h5 = data.memory.write.header_mut_ptr_for(dst_5 as usize);
+            let h6 = data.memory.write.header_mut_ptr_for(dst_6 as usize);
+            let h7 = data.memory.write.header_mut_ptr_for(dst_7 as usize);
 
-            let write_ptr_0 = header_0.write_ptr().cast::<__m256i>().as_ptr();
-            header_0.count = (header_0.count + 1) * u32::from(dst_0 != 0);
-
-            let write_ptr_1 = header_1.write_ptr().cast::<__m256i>().as_ptr();
-            header_1.count = (header_1.count + 1) * u32::from(dst_1 != 0);
-
-            let write_ptr_2 = header_2.write_ptr().cast::<__m256i>().as_ptr();
-            header_2.count = (header_2.count + 1) * u32::from(dst_2 != 0);
-
-            let write_ptr_3 = header_3.write_ptr().cast::<__m256i>().as_ptr();
-            header_3.count = (header_3.count + 1) * u32::from(dst_3 != 0);
-
-            let write_ptr_4 = header_4.write_ptr().cast::<__m256i>().as_ptr();
-            header_4.count = (header_4.count + 1) * u32::from(dst_4 != 0);
-
-            let write_ptr_5 = header_5.write_ptr().cast::<__m256i>().as_ptr();
-            header_5.count = (header_5.count + 1) * u32::from(dst_5 != 0);
-
-            let write_ptr_6 = header_6.write_ptr().cast::<__m256i>().as_ptr();
-            header_6.count = (header_6.count + 1) * u32::from(dst_6 != 0);
-
-            let write_ptr_7 = header_7.write_ptr().cast::<__m256i>().as_ptr();
-            header_7.count = (header_7.count + 1) * u32::from(dst_7 != 0);
+            let write_ptr_0 = Header::write_raw_mut_ptr(h0).cast::<__m256i>();
+            let write_ptr_1 = Header::write_raw_mut_ptr(h1).cast::<__m256i>();
+            let write_ptr_2 = Header::write_raw_mut_ptr(h2).cast::<__m256i>();
+            let write_ptr_3 = Header::write_raw_mut_ptr(h3).cast::<__m256i>();
+            let write_ptr_4 = Header::write_raw_mut_ptr(h4).cast::<__m256i>();
+            let write_ptr_5 = Header::write_raw_mut_ptr(h5).cast::<__m256i>();
+            let write_ptr_6 = Header::write_raw_mut_ptr(h6).cast::<__m256i>();
+            let write_ptr_7 = Header::write_raw_mut_ptr(h7).cast::<__m256i>();
 
             Self::validate_and_write_messages(
                 data.lookup_table,
@@ -315,6 +301,15 @@ impl InstructionRunner<8> for Avx2InstructionSet {
                 ],
                 &[msg0, msg1, msg2, msg3, msg4, msg5, msg6, msg7],
             );
+
+            (*h0).count = ((*h0).count + 1) * u32::from(dst_0 != 0);
+            (*h1).count = ((*h1).count + 1) * u32::from(dst_1 != 0);
+            (*h2).count = ((*h2).count + 1) * u32::from(dst_2 != 0);
+            (*h3).count = ((*h3).count + 1) * u32::from(dst_3 != 0);
+            (*h4).count = ((*h4).count + 1) * u32::from(dst_4 != 0);
+            (*h5).count = ((*h5).count + 1) * u32::from(dst_5 != 0);
+            (*h6).count = ((*h6).count + 1) * u32::from(dst_6 != 0);
+            (*h7).count = ((*h7).count + 1) * u32::from(dst_7 != 0);
         }
     }
 
@@ -330,19 +325,5 @@ impl InstructionRunner<8> for Avx2InstructionSet {
         }
 
         Sse41InstructionSet::prepare_and_send_direct_slice(data, src, messages);
-    }
-
-    #[inline(always)]
-    fn prepare_and_send_direct_all(subscribers: &[u8], data: &mut PipelineData) {
-        let capacity = data.memory.read.slice_capacity();
-        for src in subscribers.iter().copied() {
-            let src = src as usize;
-            unsafe {
-                let header = data.memory.read.header_ptr_for(src).as_mut();
-                let messages = header.read_slice_mut(capacity);
-                Self::prepare_and_send_direct_slice(data, src, messages);
-                header.count = 0;
-            }
-        }
     }
 }

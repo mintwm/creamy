@@ -69,6 +69,7 @@ impl LookupTable {
         }
     }
 
+    /*
     pub fn subscriber_data(&self, id: u8) -> (&[u8], &[u8]) {
         //In, Out
         let id = id as usize;
@@ -79,7 +80,7 @@ impl LookupTable {
             &self.input[in_idx_min..in_idx_min + self.max_groups as usize],
             &self.output[out_idx_min..out_idx_min + self.max_groups as usize],
         )
-    }
+    } */
 
     pub const fn get_input(&self) -> &[u8] {
         self.input.as_slice()

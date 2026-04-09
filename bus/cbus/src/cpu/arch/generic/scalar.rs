@@ -4,6 +4,7 @@ use crate::{
     core::UntypedMessage,
     cpu::{PipelineData, runner::InstructionRunner, set::InstructionSet},
     lookup::LookupTable,
+    sys::Header,
 };
 
 pub struct ScalarInstructionSet;
@@ -108,30 +109,15 @@ impl InstructionRunner<1> for ScalarInstructionSet {
     ) {
         for message in messages {
             Self::prepare_single_message(data.lookup_table, src, message);
+            let header = data.memory.write.header_mut_ptr_for(message.dst as usize);
+            let write_ptr = Header::write_raw_mut_ptr(header);
+            let read_ptr = std::ptr::from_ref(message);
             unsafe {
-                let header = data.memory.write.header_for(message.dst as usize);
-                let write_ptr = header.write_ptr().as_ptr();
-                let read_ptr = std::ptr::from_ref(message);
-
                 std::ptr::copy_nonoverlapping(read_ptr, write_ptr, 1);
 
                 // Инкрементируем count если dst не равен 0
                 // Это нужно чтобы все сообщения с dst == 0 отправлялись в мусорку (/dev/null)
-                header.count = (header.count + 1) * u32::from(message.dst != 0);
-            }
-        }
-    }
-
-    #[inline(always)]
-    fn prepare_and_send_direct_all(subscribers: &[u8], data: &mut PipelineData) {
-        let capacity = data.memory.read.slice_capacity();
-        for src in subscribers.iter().copied() {
-            let src = src as usize;
-            unsafe {
-                let src_header = data.memory.read.header_ptr_for(src).as_mut();
-                let messages = src_header.read_slice_mut(capacity);
-                Self::prepare_and_send_direct_slice(data, src, messages);
-                src_header.count = 0;
+                (*header).count = ((*header).count + 1) * u32::from(message.dst != 0);
             }
         }
     }

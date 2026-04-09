@@ -19,53 +19,43 @@ pub struct Header {
 }
 
 impl Header {
-    const fn data(&self) -> NonNull<u8> {
+    pub const fn write_raw_mut_ptr(ptr: *mut Self) -> *mut UntypedMessage {
         unsafe {
-            // self + 1 пропустит ровно sizeof(Header), т.е. 64 байта
-            NonNull::new_unchecked((self as *const Header).add(1) as *mut u8)
+            let count = (*ptr).count as usize;
+            let data_ptr = ptr.add(1) as *mut u8;
+            let write_ptr = data_ptr.add(count * MESSAGE_SIZE);
+            write_ptr.cast::<UntypedMessage>()
         }
     }
 
-    #[inline(always)]
-    pub const fn write_ptr(&self) -> NonNull<UntypedMessage> {
+    pub const fn read_slice_mut_test(
+        ptr: *mut Header,
+        capacity: usize,
+    ) -> &'static mut [UntypedMessage] {
+        let count = unsafe { (*ptr).count as usize };
+
         unsafe {
-            self.data()
-                .add(self.count as usize * MESSAGE_SIZE)
-                .cast::<UntypedMessage>()
+            // Считаем начало данных: адрес header + 1 (размер Header)
+            let data_start = ptr.add(1) as *mut u8;
+
+            let slice_start = data_start
+                .add((capacity - count - 1) * MESSAGE_SIZE)
+                .cast::<UntypedMessage>();
+
+            // Создаем слайс только в самом конце
+            std::slice::from_raw_parts_mut(slice_start, count)
         }
     }
 
-    pub const fn read_ptr(&self, capacity: usize) -> NonNull<UntypedMessage> {
+    pub const fn set_count(ptr: *mut Header, count: usize) {
         unsafe {
-            // Перемещаем указатель на последнее сообщение в буфере (отсчет идет с конца)
-            self.data()
-                .add((capacity - self.count as usize - 1) * MESSAGE_SIZE)
-                .cast::<UntypedMessage>()
+            (*ptr).count = count as u32;
         }
     }
 
-    pub const fn read_slice(&self, capacity: usize) -> &[UntypedMessage] {
+    pub const fn write_slice_mut(ptr: *mut Self, count: usize) -> &'static mut [UntypedMessage] {
         unsafe {
-            let read_ptr = self.read_ptr(capacity);
-            std::slice::from_raw_parts(read_ptr.as_ptr(), self.count as usize)
-        }
-    }
-
-    pub const fn read_slice_mut(&mut self, capacity: usize) -> &mut [UntypedMessage] {
-        unsafe {
-            let slice_start = self
-                .data()
-                .add((capacity - self.count as usize - 1) * MESSAGE_SIZE)
-                .cast::<UntypedMessage>()
-                .as_ptr();
-
-            std::slice::from_raw_parts_mut(slice_start, self.count as usize)
-        }
-    }
-
-    pub const fn write_slice_mut(&mut self, count: usize) -> &mut [UntypedMessage] {
-        unsafe {
-            let ptr = self.write_ptr().as_ptr();
+            let ptr = Header::write_raw_mut_ptr(ptr);
             std::slice::from_raw_parts_mut(ptr, count)
         }
     }
@@ -106,16 +96,9 @@ impl<O> BufferPool<O> {
         }
     }
 
-    pub const fn header_for(&mut self, src: usize) -> &mut Header {
-        unsafe {
-            let start = self.u_slice_for(src);
-            &mut *start.as_ptr().cast::<Header>()
-        }
-    }
-
-    pub const fn header_ptr_for(&self, dst: usize) -> NonNull<Header> {
-        let start = self.u_slice_for(dst);
-        start.cast::<Header>()
+    pub const fn header_mut_ptr_for(&mut self, dst: usize) -> *mut Header {
+        let start = self.u_mut_slice_for(dst);
+        start.cast::<Header>().as_ptr()
     }
 
     pub fn return_buffer(&mut self, index: usize) {
@@ -142,6 +125,17 @@ impl<O> BufferPool<O> {
     #[inline(always)]
     #[cfg_attr(coverage_nightly, coverage(off))]
     pub const fn u_slice_for(&self, src: usize) -> NonNull<u8> {
+        unsafe {
+            // Считаем глобальный адрес нужного отрезка памяти.
+            self.bytes.add(src * self.slice_size)
+        }
+    }
+
+    /// Возвращает изменяемый указатель на начало слайса, привязанного к конкретному подписчику
+    /// Принимает dst как usize
+    #[inline(always)]
+    #[cfg_attr(coverage_nightly, coverage(off))]
+    pub const fn u_mut_slice_for(&mut self, src: usize) -> NonNull<u8> {
         unsafe {
             // Считаем глобальный адрес нужного отрезка памяти.
             self.bytes.add(src * self.slice_size)

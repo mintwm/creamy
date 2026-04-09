@@ -101,7 +101,8 @@ impl<const A: usize> TestSender<A> {
 
 impl<const A: usize> Subscriber for TestSender<A> {
     fn notify(&mut self) {
-        let iter = (0..A).map(|i| UntypedMessage {
+        //TODO
+        let iter = (0..A).map(|_i| UntypedMessage {
             dst: 2,
             group: 1,
             src: 0,

@@ -2,6 +2,9 @@ use core::arch::x86_64::__m128i;
 #[cfg(target_feature = "avx2")]
 pub use core::arch::x86_64::_mm_blend_epi32;
 
+#[cfg(not(target_feature = "avx2"))]
+pub use std::arch::x86_64::{_mm_blend_ps, _mm_castps_si128, _mm_castsi128_ps};
+
 mod sse41_reexports {
     pub use core::arch::x86_64::_mm_extract_epi32;
 }
@@ -25,6 +28,7 @@ use crate::{
         set::InstructionSet,
     },
     lookup::LookupTable,
+    sys::Header,
 };
 
 pub struct Sse41InstructionSet;
@@ -332,38 +336,15 @@ impl InstructionRunner<4> for Sse41InstructionSet {
             let dst2_value = msg2.cast::<u8>().add(1).read();
             let dst3_value = msg3.cast::<u8>().add(1).read();
 
-            let header_0 = data
-                .memory
-                .write
-                .header_ptr_for(dst0_value as usize)
-                .as_mut();
-            let header_1 = data
-                .memory
-                .write
-                .header_ptr_for(dst1_value as usize)
-                .as_mut();
-            let header_2 = data
-                .memory
-                .write
-                .header_ptr_for(dst2_value as usize)
-                .as_mut();
-            let header_3 = data
-                .memory
-                .write
-                .header_ptr_for(dst3_value as usize)
-                .as_mut();
+            let h0 = data.memory.write.header_mut_ptr_for(dst0_value as usize);
+            let h1 = data.memory.write.header_mut_ptr_for(dst1_value as usize);
+            let h2 = data.memory.write.header_mut_ptr_for(dst2_value as usize);
+            let h3 = data.memory.write.header_mut_ptr_for(dst3_value as usize);
 
-            let dst0 = header_0.write_ptr().cast::<__m128i>().as_ptr();
-            header_0.count = (header_0.count + 1) * u32::from(dst0_value != 0);
-
-            let dst1 = header_1.write_ptr().cast::<__m128i>().as_ptr();
-            header_1.count = (header_1.count + 1) * u32::from(dst1_value != 0);
-
-            let dst2 = header_2.write_ptr().cast::<__m128i>().as_ptr();
-            header_2.count = (header_2.count + 1) * u32::from(dst2_value != 0);
-
-            let dst3 = header_3.write_ptr().cast::<__m128i>().as_ptr();
-            header_3.count = (header_3.count + 1) * u32::from(dst3_value != 0);
+            let dst0 = Header::write_raw_mut_ptr(h0).cast::<__m128i>();
+            let dst1 = Header::write_raw_mut_ptr(h1).cast::<__m128i>();
+            let dst2 = Header::write_raw_mut_ptr(h2).cast::<__m128i>();
+            let dst3 = Header::write_raw_mut_ptr(h3).cast::<__m128i>();
 
             let dst0_half = dst0.add(1);
             let dst1_half = dst1.add(1);
@@ -388,6 +369,11 @@ impl InstructionRunner<4> for Sse41InstructionSet {
                 message_halves,
                 messages,
             );
+
+            (*h0).count = ((*h0).count + 1) * u32::from(dst0_value != 0);
+            (*h1).count = ((*h1).count + 1) * u32::from(dst1_value != 0);
+            (*h2).count = ((*h2).count + 1) * u32::from(dst2_value != 0);
+            (*h3).count = ((*h3).count + 1) * u32::from(dst3_value != 0);
         }
     }
 
@@ -404,19 +390,5 @@ impl InstructionRunner<4> for Sse41InstructionSet {
         }
 
         ScalarInstructionSet::prepare_and_send_direct_slice(data, src, messages);
-    }
-
-    #[inline(always)]
-    fn prepare_and_send_direct_all(subscribers: &[u8], data: &mut PipelineData) {
-        let capacity = data.memory.read.slice_capacity();
-        for src in subscribers.iter().copied() {
-            let src = src as usize;
-            unsafe {
-                let header = data.memory.read.header_ptr_for(src).as_mut();
-                let messages = header.read_slice_mut(capacity);
-                Self::prepare_and_send_direct_slice(data, src, messages);
-                header.count = 0;
-            }
-        }
     }
 }

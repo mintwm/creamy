@@ -2,6 +2,7 @@ use crate::{
     core::UntypedMessage,
     cpu::{MessagePipeline, PipelineData},
     lookup::LookupTable,
+    sys::Header,
 };
 
 pub trait InstructionSet<const CHUNK_SIZE: usize>: Sized {
@@ -35,13 +36,16 @@ pub trait InstructionSet<const CHUNK_SIZE: usize>: Sized {
         let capacity = data.memory.read.slice_capacity();
         for src in subscribers.iter().copied() {
             let src = src as usize;
-            let header = data.memory.read.header_for(src);
-            let read = header.read_slice(capacity);
-            let write = data.memory.message.reserve_slice(header.count as usize);
 
-            Self::slices_prepare_and_send(data.lookup_table, src, read, write);
+            let header = data.memory.read.header_mut_ptr_for(src);
+            let read = Header::read_slice_mut_test(header, capacity);
 
-            header.count = 0;
+            unsafe {
+                let write = data.memory.message.reserve_slice((*header).count as usize);
+
+                Self::slices_prepare_and_send(data.lookup_table, src, read, write);
+                Header::set_count(header, 0);
+            }
         }
     }
 
@@ -52,12 +56,14 @@ pub trait InstructionSet<const CHUNK_SIZE: usize>: Sized {
 
         for (dst, len, ptr_location) in batch.drain(..) {
             let read = data.memory.message.slice(len as usize, ptr_location);
-            let header = data.memory.write.header_for(dst as usize);
-            let write = header.write_slice_mut(len as usize);
+            let header = data.memory.write.header_mut_ptr_for(dst as usize);
+            let write = Header::write_slice_mut(header, len as usize);
 
             Self::slices_send(read, write);
 
-            header.count += len;
+            unsafe {
+                (*header).count += len;
+            }
         }
 
         let _ = std::mem::replace(&mut pipeline.batch, batch);
