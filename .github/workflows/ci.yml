@@ -8,28 +8,19 @@ on:
 
 env:
   CARGO_TERM_COLOR: always
+  
+permissions:
+  contents: read
+  pages: write
+  id-token: write
 
-jobs:
-  Cleanup:
-    runs-on: ubuntu-latest
-    permissions: write-all
-    steps:
-      - name: Delete Deployment Environment
-        uses: strumwolf/delete-deployment-environment@v3
-        with:
-          token: ${{ secrets.GITHUB_TOKEN }}
-          environment: github-pages
-          onlyRemoveDeployments: true
-          
+jobs:         
   Tests:
     runs-on: ubuntu-latest
     steps:
       - uses: actions/checkout@v5
         with:
           submodules: true
-          
-      - name: Install system dependencies
-        run: sudo apt-get update
         
       - name: Install Rust
         run: rustup update stable
@@ -47,10 +38,15 @@ jobs:
         
       - name: Generate code coverage
         run: cargo llvm-cov --html
+          
+      - name: Setup Pages
+        uses: actions/configure-pages@v4
+
+      - name: Upload artifact
+        uses: actions/upload-pages-artifact@v3
+        with:
+          path: './target/llvm-cov/html'
 
       - name: Deploy to GitHub Pages
-        uses: peaceiris/actions-gh-pages@v4
-        with:
-          github_token: ${{ secrets.GITHUB_TOKEN }}
-          publish_dir: ./target/llvm-cov/html
-          publish_branch: gh-pages
+        id: deployment
+        uses: actions/deploy-pages@v4
