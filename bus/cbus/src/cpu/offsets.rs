@@ -17,6 +17,7 @@ cfg_if::cfg_if! {
             pub avx2: u8,
             pub sse41: u8,
             pub scalar: u8,
+            pub ignore: u8,
         }
     } else if #[cfg(target_feature = "sse4.1")] {
         pub const MAX_SLICE_SIZE: usize = 4;
