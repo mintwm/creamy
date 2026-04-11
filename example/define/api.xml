@@ -1,0 +1,25 @@
+<?xml version="1.0" encoding="UTF-8" ?>
+<protocol name="api" version="0" access="exclusive_write">
+    <message name="get_next_index">
+        <field name="index" type="u32" />
+    </message>
+
+    <message name="get_used_indices">
+        <field name="len" type="u16" />
+        <field name="data" type="{len}" />
+    </message>
+</protocol>
+<!--
+    * Access types: [exclusive_write(01), multiple_write(02)]
+
+    * Numeric types: [
+        u8, u16, u32, u64, u128,
+        i8, i16, i32, i64, i128,
+        f32, f64,
+    ]
+
+    * Other: [
+        fixed-size arrays [numeric_type; length],
+        field: {name},
+    ]
+-->
