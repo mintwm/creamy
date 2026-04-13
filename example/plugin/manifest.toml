@@ -5,5 +5,3 @@ version = "0.1.0"
 description = "Window manager implementation"
 repository = "https://github.com/mintwm/chocomint"
 authors = ["selrisu <myirisuchan@gmail.com>"]
-
-capabilities = ["compositor.wm"]
