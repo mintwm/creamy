@@ -1,0 +1,53 @@
+<?xml version="1.0" encoding="UTF-8" ?>
+<protocol name="success_test" version="0" access="MultipleWrite">
+   <!-- Ровно 27 байт: 16 (u128) + 8 (u64) + 2 (u16) + 1 (u8) -->
+    <message name="FullHouse27">
+        <field name="guid" type="u128" />
+        <field name="timestamp" type="u64" />
+        <field name="small_val" type="u16" />
+        <field name="flag" type="u8" />
+    </message>
+
+    <!-- Ровно 24 байта: массив из 6 f32 (6 * 4) -->
+    <message name="VectorArray">
+        <field name="coordinates" type="[f32; 6]" />
+    </message>
+
+    <!-- Ровно 26 байт: i128 (16) + i64 (8) + i16 (2) -->
+    <message name="SignedLimits">
+        <field name="big_int" type="i128" />
+        <field name="mid_int" type="i64" />
+        <field name="small_int" type="i16" />
+    </message>
+
+    <!-- Вложенность: Bucket (15 байт) + u8(1) + u32(4) + i64(7? нет, i64 это 8) -->
+    <!-- Давай точнее: Bucket(15) + u8(1) + u32(4) + [u8; 7](7) = 27 байт -->
+    <struct name="BucketSmall">
+        <field name="a" type="u8" />
+        <field name="b" type="u16" />
+        <field name="c" type="u32" />
+        <field name="d" type="u64" />
+    </struct>
+
+    <message name="NestedValid">
+        <field name="data" type="BucketSmall" /> <!-- 15 байт -->
+        <field name="extra" type="[u8; 12]" />    <!-- 12 байт -->
+    </message>
+
+    <!-- Enum (обычно 1 байт) + массив -->
+    <message name="StatusWithData">
+        <field name="status" type="Status" />   <!-- 1 байт -->
+        <field name="buffer" type="[u8; 26]" /> <!-- 26 байт -->
+    </message>
+
+    <message name="StatusWithRemainder">
+        <field name="status" type="Status" />   <!-- 1 байт -->
+        <field name="buffer" type="{remainder}" />
+    </message>
+
+    <enum name="Status">
+        <variant name="Error" />
+        <variant name="Allow" />
+        <variant name="Deny" />
+    </enum>
+</protocol>

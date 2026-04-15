@@ -69,23 +69,49 @@ pub enum CustomType {
 
 #[binrw]
 #[derive(Debug, Clone, Copy)]
+pub enum FieldType {
+    Type(TypeId),
+    Array(TypeId, u32),
+    Remainder,
+}
+
+impl Layout for FieldType {
+    fn size_of(&self, tt: &TypeTable) -> usize {
+        match self {
+            FieldType::Type(ty) => tt.size_of_type(*ty),
+            FieldType::Array(ty, size) => tt.size_of_type(*ty) * *size as usize,
+            FieldType::Remainder => 0,
+        }
+    }
+
+    fn align_of(&self, tt: &TypeTable) -> usize {
+        match self {
+            FieldType::Type(ty) => tt.align_of_type(*ty),
+            FieldType::Array(ty, _) => tt.align_of_type(*ty),
+            FieldType::Remainder => 0,
+        }
+    }
+}
+
+#[binrw]
+#[derive(Debug, Clone, Copy)]
 pub struct Field {
     name: StringId,
-    kind: TypeId,
+    kind: FieldType,
 }
 
 impl Field {
-    pub const fn new(name: StringId, ty: TypeId) -> Self {
-        Self { name, kind: ty }
+    pub const fn new(name: StringId, kind: FieldType) -> Self {
+        Self { name, kind }
     }
 }
 
 impl Layout for Field {
     fn size_of(&self, tt: &TypeTable) -> usize {
-        tt.size_of_type(self.kind)
+        self.kind.size_of(tt)
     }
 
     fn align_of(&self, tt: &TypeTable) -> usize {
-        tt.align_of_type(self.kind)
+        self.kind.align_of(tt)
     }
 }

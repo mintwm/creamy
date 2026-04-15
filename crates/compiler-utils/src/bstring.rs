@@ -3,7 +3,7 @@ use std::ops::Deref;
 use binrw::{BinRead, BinWrite};
 use serde::{Deserialize, Serialize};
 
-#[derive(Debug, Default, Clone, Serialize, Deserialize)]
+#[derive(Debug, Default, Clone, Deserialize, Serialize)]
 pub struct BString(String);
 impl Deref for BString {
     type Target = String;

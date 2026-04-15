@@ -1,3 +1,4 @@
+use compiler_utils::strpool::StringPool;
 use roxmltree::{Node, NodeType};
 
 use crate::tree::types::{EnumToken, MessageToken, StructToken};
@@ -13,13 +14,16 @@ pub struct ProtocolTree {
 }
 
 impl ProtocolTree {
-    pub fn from_str(content: &str) -> Result<Self, Box<dyn std::error::Error>> {
+    pub fn from_str(
+        content: &str,
+        pool: &mut StringPool,
+    ) -> Result<Self, Box<dyn std::error::Error>> {
         let doc = roxmltree::Document::parse(content)?;
         let root = doc.root().first_child().unwrap();
-        Ok(ProtocolTree::new(root))
+        Ok(ProtocolTree::new(root, pool))
     }
 
-    pub fn new(root: Node) -> Self {
+    pub fn new(root: Node, pool: &mut StringPool) -> Self {
         assert_eq!(root.tag_name().name(), "protocol");
         let name = root
             .attribute("name")
@@ -46,10 +50,10 @@ impl ProtocolTree {
         {
             match node.tag_name().name() {
                 "message" => {
-                    messages.push(MessageToken::new(node));
+                    messages.push(MessageToken::new(node, pool));
                 }
                 "struct" => {
-                    structs.push(StructToken::new(node));
+                    structs.push(StructToken::new(node, pool));
                 }
                 "enum" => {
                     enums.push(EnumToken::new(node));

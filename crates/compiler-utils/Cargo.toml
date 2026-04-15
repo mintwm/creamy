@@ -8,5 +8,4 @@ binrw = "0.15.1"
 
 [dependencies.serde]
 version = "1.0.228"
-default-features = false
-features = ["derive"]
+features = ["derive", "std"]

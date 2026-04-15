@@ -148,6 +148,7 @@ dependencies = [
  "binrw",
  "compiler-utils",
  "enum_dispatch",
+ "regex",
  "roxmltree",
 ]
 

@@ -1,39 +1,96 @@
-use compiler_utils::strpool::StringPool;
+use compiler_utils::strpool::{StringId, StringPool};
 use roxmltree::Node;
 
-use crate::{model::types::Field, table::TypeTable};
+use crate::{
+    model::types::{Field, FieldType},
+    table::TypeTable,
+    utils::StringPoolExt,
+};
+
+fn parse_array(input: &str) -> Option<(&str, u32)> {
+    let s = input.trim();
+
+    if !s.starts_with('[') || !s.ends_with(']') {
+        return None;
+    }
+
+    let content = &s[1..s.len() - 1];
+    let parts: Vec<&str> = content.split(';').collect();
+
+    if parts.len() != 2 {
+        return None;
+    }
+
+    let type_ident = parts[0].trim();
+    let count = parts[1].trim().parse::<u32>().ok()?;
+
+    Some((type_ident, count))
+}
+
+fn is_remainder_type(input: &str) -> bool {
+    let s = input.trim();
+
+    if s.starts_with('{') && s.ends_with('}') {
+        return s[1..s.len() - 1].trim() == "remainder";
+    }
+
+    false
+}
+
+#[derive(Debug, Clone, Copy)]
+enum FieldTypeToken {
+    Type(StringId),
+    Array(StringId, u32),
+    Remainder,
+}
+
+impl FieldTypeToken {
+    fn new(string: &str, pool: &mut StringPool) -> Self {
+        if let Some((name, size)) = parse_array(string) {
+            let name = pool.get_id(name);
+            FieldTypeToken::Array(name, size)
+        } else if is_remainder_type(string) {
+            FieldTypeToken::Remainder
+        } else {
+            FieldTypeToken::Type(pool.get_id(string))
+        }
+    }
+}
 
 #[derive(Debug)]
 pub struct FieldToken {
-    name: String,
-    kind: String,
+    name: StringId,
+    kind: FieldTypeToken,
 }
 
 impl FieldToken {
-    pub fn new(node: Node) -> Self {
+    pub fn new(node: Node, pool: &mut StringPool) -> Self {
         assert_eq!(node.tag_name().name(), "field");
 
         let name = node
             .attribute("name")
             .expect("<field>: missing 'name' attribute")
-            .to_string();
+            .from_pool(pool);
 
         let kind = node
             .attribute("type")
-            .expect("<field>: missing 'type' attribute")
-            .to_string();
+            .expect("<field>: missing 'type' attribute");
+        let kind = FieldTypeToken::new(kind, pool);
 
         Self { name, kind }
     }
 
-    pub fn resolve(self, tt: &TypeTable, pool: &mut StringPool) -> Field {
-        let name = pool.get_id(&self.name);
-        let ty_name = pool.get_id(&self.kind);
-        let ty = tt.get_type_by_name(ty_name);
-        Field::new(name, ty)
+    pub fn resolve(self, tt: &TypeTable) -> Field {
+        let kind = match self.kind {
+            FieldTypeToken::Type(id) => FieldType::Type(tt.get_type_by_name(id)),
+            FieldTypeToken::Array(id, size) => FieldType::Array(tt.get_type_by_name(id), size),
+            FieldTypeToken::Remainder => FieldType::Remainder,
+        };
+
+        Field::new(self.name, kind)
     }
 
-    pub const fn name(&self) -> &str {
-        self.name.as_str()
+    pub const fn name(&self) -> StringId {
+        self.name
     }
 }

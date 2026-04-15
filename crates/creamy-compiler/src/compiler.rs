@@ -14,7 +14,7 @@ impl ProtocolCompiler {
     pub fn compile(&mut self, content: &str) -> Protocol {
         let document = roxmltree::Document::parse(content).unwrap();
         let root = document.root().first_child().unwrap();
-        let tree = ProtocolTree::new(root);
+        let tree = ProtocolTree::new(root, &mut self.resolver.pool);
         self.resolver.run(tree)
     }
 }

@@ -33,7 +33,7 @@ impl Layout for Message {
         let mut size = DEFAULT_SIZE;
         for field in self.fields.iter() {
             let padding = size % field.size_of(tt);
-            size += padding + size;
+            size += padding + field.size_of(tt);
         }
 
         size

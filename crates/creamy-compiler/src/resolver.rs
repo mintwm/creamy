@@ -11,7 +11,7 @@ use crate::{
 
 pub struct Resolver {
     tt: TypeTable,
-    pool: StringPool,
+    pub pool: StringPool,
 }
 
 impl Resolver {

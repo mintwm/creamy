@@ -12,7 +12,7 @@ pub struct MessageToken {
 }
 
 impl MessageToken {
-    pub fn new(node: Node) -> Self {
+    pub fn new(node: Node, pool: &mut StringPool) -> Self {
         assert_eq!(node.tag_name().name(), "message");
 
         let name = node
@@ -23,7 +23,7 @@ impl MessageToken {
         let fields = node
             .children()
             .filter(|node| node.node_type() == NodeType::Element)
-            .map(FieldToken::new)
+            .map(|n| FieldToken::new(n, pool))
             .collect::<Vec<_>>();
 
         Self { name, fields }
@@ -35,14 +35,15 @@ impl MessageToken {
         let mut names = HashSet::new();
         let mut fields = List::with_capacity(self.fields.len());
         for field in self.fields.drain(..) {
-            if !names.insert(field.name().to_string()) {
+            let field_name = pool.get_string(field.name());
+            if !names.insert(field_name) {
                 panic!(
                     "Cannot resolve message type. Duplicate field: {}",
-                    field.name()
+                    field_name
                 );
             }
 
-            fields.push(field.resolve(tt, pool));
+            fields.push(field.resolve(tt));
         }
 
         Message::new(name, fields)

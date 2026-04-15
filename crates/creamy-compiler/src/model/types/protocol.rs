@@ -18,10 +18,9 @@ pub enum Access {
 impl Access {
     pub fn from_str(string: &str) -> Access {
         match string {
-            "error" => Access::Error,
-            "exclusive_write" => Access::ExclusiveWrite,
-            "multuple_write" => Access::MultipleWrite,
-            _ => panic!("Unknown value"),
+            "ExclusiveWrite" => Access::ExclusiveWrite,
+            "MultipleWrite" => Access::MultipleWrite,
+            _ => Access::Error,
         }
     }
 }

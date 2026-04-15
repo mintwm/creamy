@@ -24,6 +24,10 @@ impl StringPool {
             id
         })
     }
+
+    pub fn get_string(&self, id: StringId) -> &str {
+        self.map.iter().find(|(_, v)| **v == id).unwrap().0
+    }
 }
 
 #[binrw::parser(reader: r, endian)]
