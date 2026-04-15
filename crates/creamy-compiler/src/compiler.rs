@@ -4,6 +4,12 @@ pub struct ProtocolCompiler {
     resolver: Resolver,
 }
 
+impl Default for ProtocolCompiler {
+    fn default() -> Self {
+        Self::new()
+    }
+}
+
 impl ProtocolCompiler {
     pub fn new() -> Self {
         Self {

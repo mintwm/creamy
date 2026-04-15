@@ -70,7 +70,7 @@ impl FieldToken {
         let name = node
             .attribute("name")
             .expect("<field>: missing 'name' attribute")
-            .from_pool(pool);
+            .intern(pool);
 
         let kind = node
             .attribute("type")
