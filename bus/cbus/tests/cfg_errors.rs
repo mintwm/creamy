@@ -138,5 +138,5 @@ fn max_messages_value_too_big_generic<C: BusConfig>(config: C) {
         BusError::ValueTooBig {
             name: "max_messages".to_string()
         }
-    )
+    );
 }

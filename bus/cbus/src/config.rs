@@ -39,6 +39,8 @@ impl<C: BusConfig> ValidConfig<C> {
     /// * [`BusError::ValueOutOfRange`] — if any parameter exceeds architectural limits.
     /// * [`BusError::GroupsIsNotMultipleOf2`] - if `max_groups` is not a multiple of 2
     pub fn new(config: C) -> Result<Self, BusError> {
+        const MAX_SIZE: usize = usize::MAX / 2 + 1;
+
         if config.max_subscribers() == 0 {
             return Err(BusError::ValueTooSmall {
                 name: "max_subscribers".to_string(),
@@ -85,7 +87,6 @@ impl<C: BusConfig> ValidConfig<C> {
             });
         };
 
-        const MAX_SIZE: usize = usize::MAX / 2 + 1;
         if total_size > MAX_SIZE {
             return Err(BusError::TooBigPoolSize {
                 current: total_size,

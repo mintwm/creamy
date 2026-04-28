@@ -1,7 +1,6 @@
 use core::arch::x86_64::__m128i;
 #[cfg(target_feature = "avx2")]
 pub use core::arch::x86_64::_mm_blend_epi32;
-
 #[cfg(not(target_feature = "avx2"))]
 pub use std::arch::x86_64::{_mm_blend_ps, _mm_castps_si128, _mm_castsi128_ps};
 

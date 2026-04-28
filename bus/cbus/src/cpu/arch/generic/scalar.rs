@@ -69,7 +69,7 @@ impl InstructionSet<1> for ScalarInstructionSet {
     }
 
     fn send_remainder(read: &[UntypedMessage], write: &mut [UntypedMessage]) {
-        Self::send_to(read, write)
+        Self::send_to(read, write);
     }
 
     fn prepare_and_send_exactly(

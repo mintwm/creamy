@@ -1,0 +1,11 @@
+[package]
+name = "creamy-protocol-tui"
+version.workspace = true
+edition.workspace = true
+license.workspace = true
+
+[dependencies]
+creamy-utils.workspace = true
+creamy-xmlc.workspace = true
+ptree.workspace = true
+console.workspace = true

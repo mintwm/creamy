@@ -2,6 +2,7 @@
 //#![deny(clippy::unwrap_used)]
 #![allow(clippy::cast_ptr_alignment)]
 #![allow(clippy::inline_always)]
+#![allow(clippy::cast_possible_truncation)]
 
 mod bus;
 pub mod config;

@@ -3,11 +3,7 @@ use core::{
     ops::Deref,
 };
 
-use crate::{
-    Destination,
-    bytemuck::{Pod, Zeroable},
-    defines::{MESSAGE_SIZE, PAYLOAD_SIZE},
-};
+use crate::bytemuck::{Pod, Zeroable};
 
 #[repr(C)]
 #[derive(Zeroable, Pod, Default, Debug, Clone, Copy, PartialEq, Eq, PartialOrd, Ord, Hash)]
@@ -47,36 +43,25 @@ impl MessageType {
     }
 }
 
-pub trait Payload: Metadata {
-    fn as_bytes(&self) -> &[u8; 28] {
-        bytemuck::cast_ref(self)
-    }
-}
+//pub trait Payload: MessageSuper {
+//    fn as_bytes(&self) -> &[u8; 28] {
+//        bytemuck::cast_ref(self)
+//    }
+//}
 
-pub trait MessageSuper: Debug + Copy + Clone + Sized + Zeroable + Pod {}
+//pub trait MessageSuper: Debug + Copy + Clone {}
 
-pub trait Metadata: MessageSuper {
-    const MESSAGE_TYPE: &'static str;
-    const VERSION: u8;
-}
-
-pub trait TypedMessage: Metadata {
-    fn dst(&self) -> Destination;
-    fn set_dst(&mut self, dst: Destination);
-
+pub trait TypedMessage: Debug + Copy + Clone {
+    fn dst(&self) -> u8;
+    fn with_dst(&mut self, dst: u8) -> &mut Self;
     fn src(&self) -> u8;
-
     fn group(&self) -> u8;
-    fn set_group(&mut self, group: u8);
+    fn with_group(&mut self, group: u8) -> &mut Self;
+    fn kind(&self) -> u8;
+    fn with_kind(&mut self, kind: u8) -> &mut Self;
 
-    fn kind(&self) -> MessageType;
-    fn set_kind(&mut self, ty: MessageType);
-
-    fn version(&self) -> u8;
-    fn set_version(&mut self, version: u8);
-
-    fn as_raw_bytes(&self) -> &[u8; MESSAGE_SIZE];
-    fn payload_as_raw_bytes(&self) -> &[u8; PAYLOAD_SIZE];
+    //fn as_raw_bytes(&self) -> &[u8; MESSAGE_SIZE];
+    //fn payload_as_raw_bytes(&self) -> &[u8; PAYLOAD_SIZE];
 
     #[must_use]
     #[inline(always)]

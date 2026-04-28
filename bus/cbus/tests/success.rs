@@ -97,8 +97,7 @@ impl<const A: usize> Subscriber for TestSender<A> {
             group: 1,
             src: 0,
             kind: 1,
-            version: 0,
-            payload: [0; 27],
+            payload: [0; 28],
         });
 
         assert!(self.outgoing.send_many_iter_exact(iter));

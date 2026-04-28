@@ -1,5 +1,4 @@
 use core::ops::RangeInclusive;
-use std::env::consts::ARCH;
 
 use as_guard::AsGuard;
 
@@ -32,11 +31,9 @@ impl PipelinePlan {
 }
 
 pub trait Strategy {
-    fn name() -> &'static str;
-    fn features() -> &'static str;
     fn add_offset(offsets: &mut Offsets, count: usize);
     fn get_bucket_idx(count: usize) -> usize;
-    fn get_write_ptr(offsets: &Offsets) -> [u8; MAX_SLICE_SIZE];
+    fn get_write_ptr(offsets: Offsets) -> [u8; MAX_SLICE_SIZE];
 }
 
 macro_rules! define_strategy {
@@ -59,14 +56,6 @@ macro_rules! define_strategy {
 
         pub struct $name;
         impl Strategy for $name {
-            fn name() -> &'static str {
-                stringify!($name)
-            }
-
-            fn features() -> &'static str {
-                ""
-            }
-
             #[inline(always)]
             fn add_offset(offsets: &mut Offsets, count: usize) {
                 offsets.$last_field += u8::from(count >= $last_from);
@@ -82,7 +71,7 @@ macro_rules! define_strategy {
             }
 
             #[inline(always)]
-            fn get_write_ptr(offsets: &Offsets) -> [u8; MAX_SLICE_SIZE] {
+            fn get_write_ptr(offsets: Offsets) -> [u8; MAX_SLICE_SIZE] {
                 let mut ptrs = [0u8; MAX_SLICE_SIZE];
                 let mut current = 0;
 
@@ -154,7 +143,7 @@ impl PipelinePlan {
         }
 
         // 2. Получаем правильные начальные позиции (0, len_batch, len_batch + len_avx...)
-        let mut write_ptr = S::get_write_ptr(&self.offsets);
+        let mut write_ptr = S::get_write_ptr(self.offsets);
 
         // 3. Заполняем массив indices, используя смещения
         for src in data.subscriber_range.clone() {

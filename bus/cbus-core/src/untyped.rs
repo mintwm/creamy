@@ -15,8 +15,40 @@ pub struct UntypedMessage {
     pub group: u8,
     pub src: u8,
     pub kind: u8,
-    pub version: u8,
-    pub payload: [u8; 27],
+    pub payload: [u8; 28],
+}
+
+impl TypedMessage for UntypedMessage {
+    fn dst(&self) -> u8 {
+        self.dst
+    }
+
+    fn with_dst(&mut self, dst: u8) -> &mut Self {
+        self.dst = dst;
+        self
+    }
+
+    fn src(&self) -> u8 {
+        self.src
+    }
+
+    fn group(&self) -> u8 {
+        self.group
+    }
+
+    fn with_group(&mut self, group: u8) -> &mut Self {
+        self.group = group;
+        self
+    }
+
+    fn kind(&self) -> u8 {
+        self.kind
+    }
+
+    fn with_kind(&mut self, kind: u8) -> &mut Self {
+        self.kind = kind;
+        self
+    }
 }
 
 unsafe impl Zeroable for UntypedMessage {}
@@ -26,14 +58,13 @@ impl UntypedMessage {
     #[must_use]
     #[inline]
     #[cfg_attr(coverage_nightly, coverage(off))]
-    pub const fn new(dst: u8, group: u8, kind: u8, version: u8, payload: [u8; 27]) -> Self {
+    pub const fn new(dst: u8, group: u8, kind: u8, payload: [u8; 28]) -> Self {
         Self {
             dst,
+            group,
             src: 0,
-            version,
             kind,
             payload,
-            group,
         }
     }
 

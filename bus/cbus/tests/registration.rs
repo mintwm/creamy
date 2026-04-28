@@ -42,8 +42,7 @@ impl BusDriver for Dns {
             group: id,
             src: 0,
             kind: 0,
-            version: 0,
-            payload: [0; 27],
+            payload: [0; 28],
         };
 
         let ident = self.table.get(&id).unwrap();
@@ -177,7 +176,7 @@ fn bus_exceed_error() {
         BusError::PoolExhausted {
             max: Legacy.max_subscribers() as usize
         }
-    )
+    );
 }
 
 #[test]

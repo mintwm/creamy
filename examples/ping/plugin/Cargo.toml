@@ -1,0 +1,13 @@
+[package]
+name = "plugin"
+version.workspace = true
+edition.workspace = true
+license.workspace = true
+
+[dependencies]
+cbus-core.workspace = true
+
+[build-dependencies]
+creamy-utils.workspace = true
+creamy-libgen-rs.workspace = true
+creamy-xmlc.workspace = true

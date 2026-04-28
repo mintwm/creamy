@@ -1,0 +1,16 @@
+[package]
+id = "org.creamy.ping"
+name = "ping"
+version = "0.1.0"
+description = "Plugin example"
+repository = "https://github.com/purelace/creamy"
+authors = [ "selrisu <myirisuchan@gmail.com>" ]
+
+# [core]
+# path = ""
+# runtime = ""
+
+[[protocols]]
+name = "ping.messages"
+version = "1.0"
+group = 1

@@ -1,0 +1,9 @@
+[package]
+name = "creamy-libgen-rs"
+version.workspace = true
+edition.workspace = true
+license.workspace = true
+
+[dependencies]
+creamy-xmlc.workspace = true
+creamy-utils.workspace = true

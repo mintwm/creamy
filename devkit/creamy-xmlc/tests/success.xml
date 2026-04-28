@@ -1,0 +1,70 @@
+<?xml version="1.0" encoding="UTF-8" ?>
+<protocol name="success_test" version="0.1" access="MultipleWrite">
+
+    <group name="first">
+
+        <message name="FullHouse27">
+            <field name="flag" type="u8" />
+            <field name="small_val" type="u16" />
+            <field name="timestamp" type="u64" />
+            <field name="guid" type="u128" />
+        </message>
+
+        <message name="VectorArray">
+            <field name="coordinates" type="[f32; 6]" />
+        </message>
+
+        <message name="SignedLimits">
+            <field name="small_int" type="i16" />
+            <field name="mid_int" type="i64" />
+            <field name="big_int" type="i128" />
+        </message>
+
+    </group>
+
+    <group name="second">
+
+        <struct name="BucketSmall">
+            <field name="c" type="u32" />
+            <field name="d" type="u64" />
+            <field name="b" type="u16" />
+            <field name="a" type="u8" />
+        </struct>
+
+        <message name="NestedValid">
+            <field name="data" type="BucketSmall" />
+            <field name="extra" type="[u8; 8]" />
+        </message>
+
+    </group>
+
+    <group name="third">
+
+        <message name="StatusWithData">
+            <field name="status" type="Status" />
+            <field name="buffer" type="[u8; 26]" />
+        </message>
+
+        <message name="StatusWithRemainder">
+            <field name="status" type="Status" />
+            <remainder name="buffer" />
+        </message>
+
+        <enum name="Status">
+            <variant name="Error" />
+            <variant name="Allow" />
+            <variant name="Deny" />
+        </enum>
+
+        <struct name="SmartReference">
+            <field name="ref64" type="ReferenceX64" />
+            <field name="len" type="u64" />
+        </struct>
+
+        <struct name="ReferenceX64">
+            <field name="inner" type="u64" />
+        </struct>
+
+    </group>
+
+</protocol>

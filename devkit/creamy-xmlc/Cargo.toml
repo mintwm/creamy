@@ -1,0 +1,16 @@
+[package]
+name = "creamy-xmlc"
+version.workspace = true
+edition.workspace = true
+license.workspace = true
+
+[lints.rust]
+unexpected_cfgs = { level = "warn", check-cfg = ['cfg(coverage_nightly)'] }
+
+[dependencies]
+creamy-utils.workspace = true
+thiserror.workspace = true
+binrw.workspace = true
+as-guard.workspace = true
+roxmltree.workspace = true
+strum.workspace = true

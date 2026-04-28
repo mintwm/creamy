@@ -21,7 +21,7 @@ impl Header {
     pub const fn write_raw_mut_ptr(ptr: *mut Self) -> *mut UntypedMessage {
         unsafe {
             let count = (*ptr).count as usize;
-            let data_ptr = ptr.add(1) as *mut u8;
+            let data_ptr = ptr.add(1).cast::<u8>();
             let write_ptr = data_ptr.add(count * MESSAGE_SIZE);
             write_ptr.cast::<UntypedMessage>()
         }
@@ -35,7 +35,7 @@ impl Header {
 
         unsafe {
             // Считаем начало данных: адрес header + 1 (размер Header)
-            let data_start = ptr.add(1) as *mut u8;
+            let data_start = ptr.add(1).cast::<u8>();
 
             let slice_start = data_start
                 .add((capacity - count - 1) * MESSAGE_SIZE)

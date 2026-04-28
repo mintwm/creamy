@@ -1,7 +1,5 @@
 #![allow(clippy::missing_panics_doc)]
 
-mod define;
-
 use macro_utils::get_crate_root;
 use proc_macro::TokenStream;
 use quote::quote;
@@ -76,10 +74,4 @@ pub fn derive_payload(input: TokenStream) -> TokenStream {
     };
 
     TokenStream::from(expanded)
-}
-
-///Available payload size: 28
-#[proc_macro]
-pub fn define_message(input: TokenStream) -> TokenStream {
-    define::define_message(input)
 }

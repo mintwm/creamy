@@ -1,0 +1,11 @@
+<?xml version="1.0" encoding="UTF-8" ?>
+<protocol name="ping" version="1.0" access="MultipleWrite">
+    <group name="messages">
+        <message name="Ping">
+            <field name="serial" type="u32" />
+        </message>
+        <message name="Pong">
+            <field name="serial" type="u32" />
+        </message>
+    </group>
+</protocol>
